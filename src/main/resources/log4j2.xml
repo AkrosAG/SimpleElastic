@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<Console name="CONSOLE" target="SYSTEM_OUT">
+			<PatternLayout pattern="%-d: %-5p [%8c] - %m%n" />
+		</Console>
+		<RollingFile name="FILE" fileName="./logs/elastic.log" filePattern="logs/elastic-%d{yyyy-MM-dd}-%i.log">
+			<PatternLayout pattern="%-d: %-5p [%8c] - %m%n" />
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="5" />
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Logger name="ch.akros" level="debug">
+			<AppenderRef ref="FILE" />
+		</Logger>
+		<Root level="info">
+			<AppenderRef ref="CONSOLE" />
+		</Root>
+	</Loggers>
+</Configuration>
