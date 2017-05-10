@@ -16,7 +16,7 @@ public class SimpleElasticApplication extends Application {
         launch(args);
     }
 
-    public void start(Stage primaryStage) throws Exception {
+    public void start(final Stage primaryStage) throws Exception {
         final FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/elastic.fxml"));
         final Parent root = (Parent) fxmlLoader.load();
 

@@ -1,7 +1,19 @@
 package ch.akros.cc.elastic.controller;
 
-import ch.akros.cc.elastic.connection.ClientConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.search.SearchHit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.akros.cc.elastic.connection.ClientConnectionFactory;
+import ch.akros.cc.elastic.connection.IClientConnection;
 import ch.akros.cc.elastic.util.DialogUtil;
 import ch.akros.cc.elastic.util.JsonUtils;
 import javafx.application.Platform;
@@ -15,175 +27,218 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.elasticsearch.action.DocWriteResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * Created by Patrick on 09.05.2017.
  */
 public class SimpleElasticController implements Initializable, ISimpleElasticController {
 
-    @FXML
-    private TextField server;
+	@FXML
+	private TextField server;
 
-    @FXML
-    private Button connect;
+	@FXML
+	private Button connect;
 
-    @FXML
-    private TextField query;
+	@FXML
+	private TextField query;
 
-    @FXML
-    private Button search;
+	@FXML
+	private TextField searchIndex;
 
-    @FXML
-    private TextArea queryResult;
+	@FXML
+	private TextField searchType;
 
-    @FXML
-    private TextField index;
+	@FXML
+	private Button search;
 
-    @FXML
-    private TextField type;
+	@FXML
+	private TextArea queryResult;
 
-    @FXML
-    private Button insert;
+	@FXML
+	private TextField insertIndex;
 
-    @FXML
-    private TextArea content;
+	@FXML
+	private TextField insertType;
 
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleElasticController.class);
+	@FXML
+	private Button insert;
 
-    private boolean connected;
-    private ClientConnection clientConnection;
+	@FXML
+	private TextArea content;
 
-    @Override
-    public void initialize(final URL location, final ResourceBundle resources) {
-        enableServerConnection();
-        disableTooling();
-    }
+	private static final Logger LOG = LoggerFactory.getLogger(SimpleElasticController.class);
 
-    @Override
-    public void doConnect(final ActionEvent event) {
-        if (connected) {
-            clientConnection.disconnect();
-            connected = false;
-            connect.setText("Connect");
-            enableServerConnection();
-            disableTooling();
-        } else {
-            CompletableFuture.supplyAsync(() -> {
-                        try {
-                            getScene().setCursor(Cursor.WAIT);
-                            ClientConnectionFactory.init(server.getText());
-                        } catch (MalformedURLException | UnknownHostException e) {
-                            throw new CompletionException(e);
-                        }
-                        return ClientConnectionFactory.getClientConnection();
-                    }
-            ).exceptionally(t -> {
-                LOG.error("Cannot connect to Elasticsearch", t);
-                getScene().setCursor(Cursor.DEFAULT);
-                return null;
-            }).thenAccept(cc -> {
-                clientConnection = cc;
-                getScene().setCursor(Cursor.DEFAULT);
-                Platform.runLater(() -> {
-                    connected = true;
-                    connect.setText("Disconnect");
-                    disableServerConnection();
-                    enableTooling();
-                });
-            });
-        }
-    }
+	private boolean connected;
+	private IClientConnection clientConnection;
 
-    @Override
-    public void doSearch(final ActionEvent event) {
-        System.out.println("doSearch");
-    }
+	@Override
+	public void initialize(final URL location, final ResourceBundle resources) {
+		enableServerConnection();
+		disableTooling();
+	}
 
-    @Override
-    public void doInsert(final ActionEvent event) {
-        if (index.getText().isEmpty() || type.getText().isEmpty() || content.getText().isEmpty()) {
-            Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR, "Index, Type or Content is empty"));
-        }
-        if (JsonUtils.isJsonValid(content.getText())) {
-            CompletableFuture.supplyAsync(() -> clientConnection.insertDocument(index.getText(), type.getText(), content.getText())
-            ).thenAccept(r -> {
-                if (r.getResult().equals(DocWriteResponse.Result.CREATED)) {
-                    Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.INFORMATION, "Successfully added document to index"));
-                } else {
-                    Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR, "Fialed to add docuemnt to index"));
-                }
-            });
-        } else {
-            Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR, "Document is not JSON Well-Formed"));
-        }
-    }
+	@Override
+	public void doConnect(final ActionEvent event) {
+		if (connected) {
+			CompletableFuture.runAsync(() -> {
+				getScene().setCursor(Cursor.WAIT);
+				clientConnection.disconnect();
+			}).thenAccept(v -> {
+				connected = false;
+				getScene().setCursor(Cursor.DEFAULT);
+				Platform.runLater(() -> {
+					connect.setText("Connect");
+					enableServerConnection();
+					disableTooling();
+				});
+			});
+		} else {
+			CompletableFuture.supplyAsync(() -> {
+				try {
+					getScene().setCursor(Cursor.WAIT);
+					ClientConnectionFactory.init(server.getText());
+				} catch (MalformedURLException | UnknownHostException e) {
+					throw new CompletionException(e);
+				}
+				return ClientConnectionFactory.getClientConnection();
+			}).exceptionally(t -> {
+				LOG.error("Cannot connect to Elasticsearch", t);
+				getScene().setCursor(Cursor.DEFAULT);
+				return null;
+			}).thenAccept(cc -> {
+				clientConnection = cc;
+				connected = true;
+				getScene().setCursor(Cursor.DEFAULT);
+				Platform.runLater(() -> {
+					connect.setText("Disconnect");
+					disableServerConnection();
+					enableTooling();
+				});
+			});
+		}
+	}
 
-    @Override
-    public void close() {
-        if (clientConnection != null) {
-            clientConnection.disconnect();
-        }
-    }
+	@Override
+	public void doSearch(final ActionEvent event) {
+		if (query.getText().isEmpty()) {
+			Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR, "Query is empty"));
+		}
+		CompletableFuture.supplyAsync(() -> {
+			String[] indices = new String[0];
+			String[] types = new String[0];
+			if (!searchIndex.getText().isEmpty()) {
+				indices = searchIndex.getText().split("\\s*,\\s*");
+			}
+			if (!searchType.getText().isEmpty()) {
+				types = searchType.getText().split("\\s*,\\s*");
+			}
+			return clientConnection.search(indices, types, query.getText());
+		}).exceptionally(t -> {
+			Platform.runLater(() -> queryResult.setText(t.getMessage()));
+			return null;
+		}).thenAccept(r -> {
+			if (r.getHits().getTotalHits() > 0L) {
+				final StringBuilder sb = new StringBuilder();
+				for (final SearchHit hit : r.getHits().getHits()) {
+					sb.append(hit.getSourceAsString());
+					sb.append(System.getProperty("line.separator"));
+				}
+				Platform.runLater(() -> queryResult.setText(sb.toString()));
+			} else {
+				Platform.runLater(() -> queryResult.setText("No results."));
+			}
+		});
+	}
 
-    private void disableServerConnection() {
-        server.setEditable(false);
-        server.setDisable(true);
-    }
+	@Override
+	public void doInsert(final ActionEvent event) {
+		if (insertIndex.getText().isEmpty() || insertType.getText().isEmpty() || content.getText().isEmpty()) {
+			Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR,
+					"Index, Type or Content is empty"));
+		}
+		if (JsonUtils.isJsonValid(content.getText())) {
+			CompletableFuture
+					.supplyAsync(() -> clientConnection.insertDocument(insertIndex.getText(), insertType.getText(),
+							content.getText())) //
+					.thenAccept(r -> {
+						if (r.getResult().equals(DocWriteResponse.Result.CREATED)) {
+							Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(),
+									Alert.AlertType.INFORMATION, "Successfully added document to index"));
+						} else {
+							Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR,
+									"Fialed to add docuemnt to index"));
+						}
+					});
+		} else {
+			Platform.runLater(() -> DialogUtil.showDialog(getPrimaryStage(), Alert.AlertType.ERROR,
+					"Document is not JSON Well-Formed"));
+		}
+	}
 
-    private void enableServerConnection() {
-        server.setEditable(true);
-        server.setDisable(false);
-    }
+	@Override
+	public void close() {
+		if (clientConnection != null) {
+			clientConnection.disconnect();
+		}
+	}
 
-    private void enableTooling() {
-        // Enable SearchTooling
-        query.setEditable(true);
-        query.setDisable(false);
-        search.setDisable(false);
-        queryResult.setDisable(false);
+	private void disableServerConnection() {
+		server.setEditable(false);
+		server.setDisable(true);
+	}
 
-        // Enable InsertTooling
-        index.setEditable(true);
-        index.setDisable(false);
-        type.setEditable(true);
-        type.setDisable(false);
-        insert.setDisable(false);
-        content.setEditable(true);
-        content.setDisable(false);
-    }
+	private void enableServerConnection() {
+		server.setEditable(true);
+		server.setDisable(false);
+	}
 
-    private void disableTooling() {
-        // Disable SearchTooling
-        query.setEditable(false);
-        query.setDisable(true);
-        search.setDisable(true);
-        queryResult.setDisable(true);
+	private void enableTooling() {
+		// Enable SearchTooling
+		query.setEditable(true);
+		query.setDisable(false);
+		searchIndex.setEditable(true);
+		searchIndex.setDisable(false);
+		searchType.setEditable(true);
+		searchType.setDisable(false);
+		search.setDisable(false);
+		queryResult.setDisable(false);
 
-        // Disable InsertTooling
-        index.setEditable(false);
-        index.setDisable(true);
-        type.setEditable(false);
-        type.setDisable(true);
-        insert.setDisable(true);
-        content.setEditable(false);
-        content.setDisable(true);
-    }
+		// Enable InsertTooling
+		insertIndex.setEditable(true);
+		insertIndex.setDisable(false);
+		insertType.setEditable(true);
+		insertType.setDisable(false);
+		insert.setDisable(false);
+		content.setEditable(true);
+		content.setDisable(false);
+	}
 
-    private Stage getPrimaryStage() {
-        return (Stage) server.getScene().getWindow();
-    }
+	private void disableTooling() {
+		// Disable SearchTooling
+		query.setEditable(false);
+		query.setDisable(true);
+		search.setDisable(true);
+		searchIndex.setEditable(false);
+		searchIndex.setDisable(true);
+		searchType.setEditable(false);
+		searchType.setDisable(true);
+		queryResult.setDisable(true);
 
-    private Scene getScene(){
-        return server.getScene();
-    }
+		// Disable InsertTooling
+		insertIndex.setEditable(false);
+		insertIndex.setDisable(true);
+		insertType.setEditable(false);
+		insertType.setDisable(true);
+		insert.setDisable(true);
+		content.setEditable(false);
+		content.setDisable(true);
+	}
+
+	private Stage getPrimaryStage() {
+		return (Stage) server.getScene().getWindow();
+	}
+
+	private Scene getScene() {
+		return server.getScene();
+	}
 }

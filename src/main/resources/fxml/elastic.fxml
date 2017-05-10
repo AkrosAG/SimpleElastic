@@ -10,15 +10,15 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ch.akros.cc.elastic.controller.SimpleElasticController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="446.0" prefWidth="609.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ch.akros.cc.elastic.controller.SimpleElasticController">
 	<children>
-		<HBox prefHeight="47.0" prefWidth="600.0">
+		<HBox prefHeight="55.0" prefWidth="609.0">
 			<children>
 				<Label text="Server:">
                <HBox.margin>
                   <Insets left="5.0" top="15.0" />
                </HBox.margin></Label>
-				<TextField fx:id="server" prefHeight="25.0" prefWidth="469.0" text="http://localhost:9300">
+				<TextField fx:id="server" prefHeight="31.0" prefWidth="430.0" text="http://localhost:9300">
 					<opaqueInsets>
 						<Insets />
 					</opaqueInsets>
@@ -29,17 +29,17 @@
                   <Insets bottom="10.0" left="5.0" top="10.0" />
                </HBox.margin>
 				</TextField>
-				<Button fx:id="connect" mnemonicParsing="false" onAction="#doConnect" prefHeight="25.0" prefWidth="76.0" text="Connect">
+				<Button fx:id="connect" mnemonicParsing="false" onAction="#doConnect" prefHeight="25.0" prefWidth="114.0" text="Connect">
                <HBox.margin>
                   <Insets left="5.0" right="5.0" top="10.0" />
                </HBox.margin></Button>
 			</children>
 		</HBox>
-		<TabPane prefHeight="337.0" prefWidth="571.0" tabClosingPolicy="UNAVAILABLE">
+		<TabPane prefHeight="400.0" prefWidth="609.0" tabClosingPolicy="UNAVAILABLE">
 			<tabs>
 				<Tab text="Search">
 					<content>
-						<VBox prefHeight="200.0" prefWidth="546.0">
+						<VBox prefHeight="378.0" prefWidth="609.0">
 							<children>
 								<HBox prefHeight="100.0" prefWidth="200.0">
 									<children>
@@ -48,21 +48,45 @@
 												<Insets left="5.0" top="15.0" />
 											</HBox.margin>
 										</Label>
-										<TextField fx:id="query" prefHeight="25.0" prefWidth="473.0">
+										<TextField fx:id="query" prefHeight="31.0" prefWidth="540.0" text="*">
 											<HBox.margin>
-												<Insets left="5.0" top="10.0" />
+												<Insets left="15.0" right="5.0" top="10.0" />
 											</HBox.margin>
 										</TextField>
-										<Button fx:id="search" mnemonicParsing="false" onAction="#doSearch" prefHeight="25.0" prefWidth="68.0" text="Search">
+									</children>
+								</HBox>
+                        <HBox prefHeight="32.0" prefWidth="571.0">
+                           <children>
+                              <Label text="Index:">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="15.0" />
+                                 </HBox.margin>
+                              </Label>
+                              <TextField fx:id="searchIndex">
+                                 <HBox.margin>
+                                    <Insets bottom="10.0" left="20.0" top="10.0" />
+                                 </HBox.margin>
+                              </TextField>
+                              <Label text="Type:">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="15.0" />
+                                 </HBox.margin>
+                              </Label>
+                              <TextField fx:id="searchType">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="10.0" />
+                                 </HBox.margin>
+                              </TextField>
+										<Button fx:id="search" mnemonicParsing="false" onAction="#doSearch" prefHeight="31.0" prefWidth="114.0" text="Search">
 											<HBox.margin>
 												<Insets left="5.0" right="5.0" top="10.0" />
 											</HBox.margin>
 										</Button>
-									</children>
-								</HBox>
-								<TextArea fx:id="queryResult" prefHeight="327.0" prefWidth="571.0">
+                           </children>
+                        </HBox>
+								<TextArea fx:id="queryResult" disable="true" editable="false" prefHeight="350.0" prefWidth="599.0">
 									<VBox.margin>
-										<Insets left="5.0" right="5.0" top="10.0" />
+										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
 									</VBox.margin>
 								</TextArea>
 							</children>
@@ -71,7 +95,7 @@
 				</Tab>
 				<Tab text="Index">
 					<content>
-						<VBox prefHeight="200.0" prefWidth="100.0">
+						<VBox prefHeight="335.0" prefWidth="609.0">
 							<children>
 								<HBox prefHeight="32.0" prefWidth="571.0">
 									<children>
@@ -80,7 +104,7 @@
 												<Insets left="5.0" top="15.0" />
 											</HBox.margin>
 										</Label>
-										<TextField fx:id="index">
+										<TextField fx:id="insertIndex">
 											<HBox.margin>
 												<Insets bottom="10.0" left="20.0" top="10.0" />
 											</HBox.margin>
@@ -90,7 +114,7 @@
                                     <Insets left="5.0" top="15.0" />
                                  </HBox.margin>
                               </Label>
-                              <TextField fx:id="type">
+                              <TextField fx:id="insertType">
                                  <HBox.margin>
                                     <Insets left="5.0" top="10.0" />
                                  </HBox.margin>
@@ -102,16 +126,16 @@
 										</Button>
 									</children>
 								</HBox>
-								<HBox prefHeight="277.0" prefWidth="571.0">
+								<HBox prefHeight="310.0" prefWidth="609.0">
 									<children>
 										<Label text="Content:">
 											<HBox.margin>
 												<Insets left="5.0" />
 											</HBox.margin>
 										</Label>
-										<TextArea fx:id="content" prefHeight="263.0" prefWidth="539.0">
+										<TextArea fx:id="content" prefHeight="283.0" prefWidth="538.0">
 											<HBox.margin>
-												<Insets left="5.0" right="5.0" />
+												<Insets bottom="5.0" left="5.0" right="5.0" />
 											</HBox.margin>
 										</TextArea>
 									</children>

@@ -1,7 +1,5 @@
 package ch.akros.cc.elastic.util;
 
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;

@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
  */
 public class ClientConnectionFactory {
 
-    private static ClientConnection clientConnection;
+    private static IClientConnection clientConnection;
 
     private ClientConnectionFactory() {
     }
@@ -17,14 +17,14 @@ public class ClientConnectionFactory {
         clientConnection = createClientConnection(server);
     }
 
-    public static ClientConnection getClientConnection() {
+    public static IClientConnection getClientConnection() {
         if (clientConnection == null) {
             throw new IllegalStateException("Factory must be initialized.");
         }
         return clientConnection;
     }
 
-    private static ClientConnection createClientConnection(final String server) throws MalformedURLException, UnknownHostException {
+    private static IClientConnection createClientConnection(final String server) throws MalformedURLException, UnknownHostException {
         return new ClientConnection(server);
     }
 }
